@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(teleop_to_serial)
+project(ground_drone_description)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -7,17 +7,20 @@ endif()
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(geometry_msgs REQUIRED)
-find_package(serial_communication REQUIRED)
+find_package(urdf REQUIRED)
+find_package(xacro REQUIRED)
+find_package(rviz2 REQUIRED)
 
+# Install URDF and Xacro files
+install(
+  DIRECTORY urdf
+  DESTINATION share/${PROJECT_NAME}/
+)
 
-add_executable(teleop_to_serial_node src/teleop_to_serial_node.cpp)
-ament_target_dependencies(teleop_to_serial_node rclcpp geometry_msgs serial_communication)
-
-install(TARGETS
-        teleop_to_serial_node
-        DESTINATION lib/${PROJECT_NAME}
+# Install Launch files
+install(
+  DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}/launch
 )
 
 if(BUILD_TESTING)
@@ -33,3 +36,4 @@ if(BUILD_TESTING)
 endif()
 
 ament_package()
+
