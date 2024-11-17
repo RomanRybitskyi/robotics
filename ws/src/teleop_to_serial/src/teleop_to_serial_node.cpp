@@ -1,6 +1,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "serial_communication/msg/int8_array.hpp"  // Custom message for serial communication
+#include "serial_communication/msg/wheel_speeds.hpp"  // Custom message header
 #include <cmath>
 
 constexpr uint32_t CRC_POLYNOMIAL = 0x18005;  // Polynomial for CRC calculation
@@ -87,6 +88,12 @@ public:
 
         // Publisher for Int8Array message
         serial_publisher_ = this->create_publisher<serial_communication::msg::Int8Array>("serial_write", 10);
+        
+        // Subscription to WheelSpeeds message
+        wheel_speeds_subscription_ = this->create_subscription<your_package::msg::WheelSpeeds>(
+            "wheel_speeds", 10, std::bind(&TeleopToSerialNode::wheel_speeds_callback, this, std::placeholders::_1));
+        
+        tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(this);
     }
 
 private:
@@ -124,6 +131,36 @@ private:
 
     rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr twist_subscription_;
     rclcpp::Publisher<serial_communication::msg::Int8Array>::SharedPtr serial_publisher_;
+}
+
+    void wheel_speeds_callback(const serial_communication::msg::WheelSpeeds::SharedPtr msg)
+    {
+        // Access the wheel speeds
+        float wheel_a = msg->wheel_a_frequency;
+        float wheel_b = msg->wheel_b_frequency;
+        float wheel_c = msg->wheel_c_frequency;
+        float wheel_d = msg->wheel_d_frequency;
+	
+	// Wheel parameters
+    	float R = 0.1;  // Wheel radius (meters)
+    	float L = 0.215;  // Distance between the front and rear wheels (meters)
+    	float W = 0.1575;  // Distance between the left and right wheels (meters)
+    	
+    	float vx = (R / 4) * (wheel_a + wheel_b + wheel_c + wheel_d);
+    	float vy = (R / 4) * (-wheel_a + wheel_b + wheel_c - wheel_d);
+    	float omega = (R / 4) * (-wheel_a + wheel_b - wheel_c + wheel_d) / (L + W);
+    	
+    	// Time step (this could be passed from your main loop or a timestamp)
+   	 float dt = 0.1;  // Example time step in seconds
+
+    	// Integrating velocities to update robot's position
+    	x_ += (vx * cos(theta_) - vy * sin(theta_)) * dt;
+    	y_ += (vx * sin(theta_) + vy * cos(theta_)) * dt;
+    	theta_ += omega * dt;
+        
+    }
+
+    rclcpp::Subscription<serial_communication::msg::WheelSpeeds>::SharedPtr wheel_speeds_subscription_;
 };
 
 int main(int argc, char *argv[])

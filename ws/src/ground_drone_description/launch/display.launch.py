@@ -1,7 +1,5 @@
-# Filename: launch/ground_drone_launch.py
-
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument, LogInfo
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, LaunchConfiguration
 from launch_ros.actions import Node
@@ -42,7 +40,19 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(gazebo_launch_file),
         launch_arguments={'verbose': 'true'}.items(),
     )
-    
+
+    # Node to spawn the robot in Gazebo
+    spawn_robot_node = Node(
+        package='gazebo_ros',
+        executable='spawn_entity.py',
+        name='spawn_robot',
+        output='screen',
+        arguments=[
+            '-topic', 'robot_description',
+            '-entity', 'bot'
+        ]
+    )
+
     # Launch teleop_twist_keyboard node (optional)
     teleop_node = Node(
         package='teleop_twist_keyboard',
@@ -51,11 +61,12 @@ def generate_launch_description():
         output='screen',
         prefix='xterm -e'  # Opens in a new terminal for ease of control
     )
-    
+
     return LaunchDescription([
         DeclareLaunchArgument('use_sim_time', default_value='true', description='Use simulation time if true'),
         gazebo,
         robot_state_publisher_node,
+        spawn_robot_node,  # Add spawn robot node here
         teleop_node
     ])
 

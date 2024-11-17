@@ -1,5 +1,5 @@
 serial_node:
   ros__parameters:
-    port_name: "/dev/ttyS1"
+    port_name: "/dev/ttyUSB0"
     baud_rate: 38400
 

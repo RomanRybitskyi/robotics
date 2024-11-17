@@ -3,7 +3,7 @@
 
 <xacro:include filename="inertial_macros.xacro"/>
 
-  <link name="base_link">
+  <link name="base_footprint">
   </link>
 
   <!-- Define the main body -->
@@ -28,7 +28,7 @@
   </link>
   
   <joint name="body_to_base_link" type="fixed">
-    <parent link="base_link"/>
+    <parent link="base_footprint"/>
     <child link="body"/>
   </joint>
   
@@ -150,38 +150,37 @@
   	
   <!-- Define joints -->
   <joint name="base_to_front_left_wheel" type="continuous">
-    <parent link="base_link"/>
+    <parent link="base_footprint"/>
     <child link="wheel_front_left"/>
     <origin xyz="0.5 -0.03 0" rpy="-1.5708 0 0"/>
     <axis xyz="0 0 1"/>
   </joint>
 
   <joint name="base_to_front_right_wheel" type="continuous">
-    <parent link="base_link"/>
+    <parent link="base_footprint"/>
     <child link="wheel_front_right"/>
     <origin xyz="0.5 0.53 0" rpy="1.5708 0 0"/>
     <axis xyz="0 0 1"/>
   </joint>
 
   <joint name="base_to_rear_left_wheel" type="continuous">
-    <parent link="base_link"/>
+    <parent link="base_footprint"/>
     <child link="wheel_rear_left"/>
     <origin xyz="0 -0.03 0" rpy="-1.5708 0 0"/>
     <axis xyz="0 0 1"/>
   </joint>
 
   <joint name="base_to_rear_right_wheel" type="continuous">
-    <parent link="base_link"/>
+    <parent link="base_footprint"/>
     <child link="wheel_rear_right"/>
-    <origin xyz="0 0.53 0" rpy="1.5708 0 0"/>
+    <origin xyz="0 0.53 0" rpy="1.5708 0 0"/>	
     <axis xyz="0 0 1"/>
   </joint>
 
 <joint name="lidar_joint" type="fixed">
-    <parent link="base_link"/>
+    <parent link="base_footprint"/>
     <child link="lidar"/>
-    <origin xyz="0 0 0.1" rpy="0 0 0"/>
-    <limit effort="1" lower="-1.5708" upper="1.5708" velocity="1"/>  
+    <origin xyz="0.25 0.25 0.25" rpy="0 0 0"/>
   </joint>
   
   
@@ -191,10 +190,10 @@
       <odometryTopic>odom</odometryTopic>
       <odometryFrame>odom</odometryFrame>
       <odometryRate>20.0</odometryRate>
-      <robotBaseFrame>body</robotBaseFrame>
+      <robotBaseFrame>base_footprint</robotBaseFrame>
       <wheel_radius>0.1</wheel_radius>
-      <base_length>0.651</base_length>
-      <base_width>0.246</base_width>
+      <base_length>0.430</base_length>
+      <base_width>0.315</base_width>
       <front_left_joint>base_to_front_left_wheel</front_left_joint>
       <front_right_joint>base_to_front_right_wheel</front_right_joint>
       <rear_left_joint>base_to_rear_left_wheel</rear_left_joint>
