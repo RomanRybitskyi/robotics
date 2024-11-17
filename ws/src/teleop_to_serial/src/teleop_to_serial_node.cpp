@@ -3,6 +3,10 @@
 #include "serial_communication/msg/int8_array.hpp"  // Custom message for serial communication
 #include "serial_communication/msg/wheel_speeds.hpp"  // Custom message header
 #include <cmath>
+#include "tf2_ros/transform_broadcaster.h"
+#include "tf2/LinearMath/Quaternion.h"
+#include "geometry_msgs/msg/transform_stamped.hpp"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 
 constexpr uint32_t CRC_POLYNOMIAL = 0x18005;  // Polynomial for CRC calculation
 constexpr uint32_t CRC_INITIAL = 0xFFFF;     // Initial value for CRC
@@ -90,7 +94,7 @@ public:
         serial_publisher_ = this->create_publisher<serial_communication::msg::Int8Array>("serial_write", 10);
         
         // Subscription to WheelSpeeds message
-        wheel_speeds_subscription_ = this->create_subscription<your_package::msg::WheelSpeeds>(
+        wheel_speeds_subscription_ = this->create_subscription<serial_communication::msg::WheelSpeeds>(
             "wheel_speeds", 10, std::bind(&TeleopToSerialNode::wheel_speeds_callback, this, std::placeholders::_1));
         
         tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(this);
@@ -131,7 +135,7 @@ private:
 
     rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr twist_subscription_;
     rclcpp::Publisher<serial_communication::msg::Int8Array>::SharedPtr serial_publisher_;
-}
+
 
     void wheel_speeds_callback(const serial_communication::msg::WheelSpeeds::SharedPtr msg)
     {
@@ -157,10 +161,31 @@ private:
     	x_ += (vx * cos(theta_) - vy * sin(theta_)) * dt;
     	y_ += (vx * sin(theta_) + vy * cos(theta_)) * dt;
     	theta_ += omega * dt;
+    	
+    	// Publish the TF transform to RViz
+        geometry_msgs::msg::TransformStamped transform;
+
+        transform.header.stamp = this->now();
+        transform.header.frame_id = "odom";  // Or your fixed frame
+        transform.child_frame_id = "base_footprint";
+
+        transform.transform.translation.x = x_;
+        transform.transform.translation.y = y_;
+        transform.transform.translation.z = 0.0;
+
+        // Assuming the orientation is in radians
+        transform.transform.rotation = tf2::toMsg(tf2::Quaternion(0, 0, sin(theta_ / 2), cos(theta_ / 2)));
+
+        tf_broadcaster_->sendTransform(transform);
         
     }
 
     rclcpp::Subscription<serial_communication::msg::WheelSpeeds>::SharedPtr wheel_speeds_subscription_;
+    std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+    // Variables for position and orientation
+    float x_ = 0.0;
+    float y_ = 0.0;
+    float theta_ = 0.0;
 };
 
 int main(int argc, char *argv[])
