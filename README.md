@@ -3,7 +3,7 @@
 Stack:
 - Ubuntu 22.04
 - ROS2(humble)
-- Gazebo(Fortress)
+- Gazebo(Classic)
 
 ## How to start
 1. Install ROS2 Humble desktop and ros-dev-tools
